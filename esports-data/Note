@@ -1,0 +1,7 @@
+Important Note Regarding the data extraction
+
+While writing the python script for extracting data from the tournaments file I was having problems on how to extract the players data so I 
+have left that out for now and for the sake of simplicity.
+ 
+If time permits I will go back and extract the data of all players as well but for now I just want to make a baseline machine learning model
+and at least get a starting point
