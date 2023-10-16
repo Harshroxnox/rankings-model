@@ -222,6 +222,9 @@ for index, row in train_df.iterrows():
     print(DISCOUNT_FACTOR * np.max(q_values_next))
     model.fit(np.array([state]), q_values, verbose=0)
 
+
+tf.saved_model.save(model, "/home/ubuntu/rankings-model/model1")
+
 """
 # Test the trained policy
 state = START_STATE
