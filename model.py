@@ -122,6 +122,7 @@ for index, row in train_df.iterrows():
     index_a = None
     index_b = None
     rating_diff = None
+
     index_itr = 0
     for sublist in ratings:
         if sublist[0] == row['teamA']:
@@ -146,6 +147,7 @@ for index, row in train_df.iterrows():
             ratings.append(new_team)
             index_b = len(ratings) - 1
             rating_b = 400
+        index_itr += 1
 
     if rating_a > rating_b:
         rating_diff = rating_a - rating_b
@@ -214,6 +216,7 @@ for index, row in train_df.iterrows():
             reward = -1
     else:
         reward = 0
+
     score += reward
     # Q-value update using the neural network
     q_values = model.predict(np.array([state]))
@@ -223,7 +226,7 @@ for index, row in train_df.iterrows():
     model.fit(np.array([state]), q_values, verbose=0)
 
 
-tf.saved_model.save(model, "/home/ubuntu/rankings-model/model1")
+tf.saved_model.save(model, "model1")
 
 """
 # Test the trained policy
