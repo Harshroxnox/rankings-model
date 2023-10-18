@@ -121,15 +121,16 @@ for index, row in train_df.iterrows():
         EPSILON = 0.1
     count += 1
 
-    rating_diff = None
     print(ratings)
+    print(" ")
+    print(count)
+    print(" ")
+    print(score)
+
+    rating_diff = None
     rating_a, index_a = get_rating_and_index(row['teamA'], ratings)
     rating_b, index_b = get_rating_and_index(row['teamB'], ratings)
-    print("index a")
-    print(index_a)
-    print("index b")
-    print(index_b)
-    print(ratings)
+
     if rating_a > rating_b:
         rating_diff = rating_a - rating_b
     else:
