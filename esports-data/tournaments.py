@@ -136,7 +136,7 @@ def get_data_rows(list_of_dict):
                 get_data_rows(dictionary[key])
             if key == "Teams":
                 data_row.append(dictionary[key][0]["teamId"])
-                data_row.append(dictionary[key][0]["teamId"])
+                data_row.append(dictionary[key][1]["teamId"])
         if len(data_row) == 13:
             flatten_json_data.append(data_row)
         data_row = temp.copy()

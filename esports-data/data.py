@@ -36,8 +36,8 @@ tournaments[0][8] = "teamA"
 tournaments[0][9] = "teamB"
 
 # writing the mixed data into a new data.csv file
-"""
+
 with open("data.csv", 'w', newline='') as csv_file:
     writer = csv.writer(csv_file)
     writer.writerows(tournaments)
-"""
+

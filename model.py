@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-import random
 import sys
 
 # reading the data from the csv file and converting it to pandas dataframe
@@ -75,16 +74,16 @@ ratings = [[-sys.maxsize-1, -sys.maxsize-1]]
 
 # Define possible actions (different values of k)
 ACTIONS = [
-    random.randint(1, 10),
-    random.randint(10, 20),
-    random.randint(20, 30),
-    random.randint(30, 40),
-    random.randint(40, 50),
-    random.randint(50, 60),
-    random.randint(60, 70),
-    random.randint(70, 80),
-    random.randint(80, 90),
-    random.randint(90, 100),
+    5,
+    15,
+    25,
+    35,
+    45,
+    55,
+    65,
+    75,
+    85,
+    95,
 ]
 print(ACTIONS)
 # Define the neural network model
@@ -105,50 +104,32 @@ EPSILON = 0.4
 
 count = 0
 score = 0
+
+def get_rating_and_index(teamId, ratings):
+    for index, teams in enumerate(ratings):
+        if teams[0] == teamId:
+            return teams[1], index
+    else:
+        # Team not found, add a new entry
+        new_team = [teamId, 400]
+        ratings.append(new_team)
+        return 400, len(ratings) - 1
+
 # Deep Q-learning algorithm
 for index, row in train_df.iterrows():
     if count == 700:
         EPSILON = 0.1
     count += 1
 
-    print(count)
-    print(" ")
-    print(score)
-    print(" ")
-    print(ratings)
-
-    rating_a = None
-    rating_b = None
-    index_a = None
-    index_b = None
     rating_diff = None
-
-    index_itr = 0
-    for sublist in ratings:
-        if sublist[0] == row['teamA']:
-            rating_a = sublist[1]
-            index_a = index_itr
-            break
-        elif ratings[-1] == sublist:
-            new_team = [row['teamA'], 400]
-            ratings.append(new_team)
-            index_a = len(ratings)-1
-            rating_a = 400
-        index_itr += 1
-
-    index_itr = 0
-    for sublist in ratings:
-        if sublist[0] == row['teamB']:
-            rating_b = sublist[1]
-            index_b = index_itr
-            break
-        elif ratings[-1] == sublist:
-            new_team = [row['teamB'], 400]
-            ratings.append(new_team)
-            index_b = len(ratings) - 1
-            rating_b = 400
-        index_itr += 1
-
+    print(ratings)
+    rating_a, index_a = get_rating_and_index(row['teamA'], ratings)
+    rating_b, index_b = get_rating_and_index(row['teamB'], ratings)
+    print("index a")
+    print(index_a)
+    print("index b")
+    print(index_b)
+    print(ratings)
     if rating_a > rating_b:
         rating_diff = rating_a - rating_b
     else:
@@ -165,7 +146,7 @@ for index, row in train_df.iterrows():
         action = np.argmax(q_values)
     
     # Update the ratings in ranking dictionary
-    if team_a_wins == 1:
+    if row["result"] == 1:
         ratings[index_a][1] += ACTIONS[action]
         ratings[index_b][1] -= ACTIONS[action]
     else:
