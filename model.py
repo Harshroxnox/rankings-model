@@ -3,69 +3,8 @@ import numpy as np
 import tensorflow as tf
 import sys
 
-# reading the data from the csv file and converting it to pandas dataframe
-df = pd.read_csv("data.csv")
-
-# dropping the rows for which the result label is empty or is equal to forfeit as it is of no use
-df = df.dropna(subset=["result"])
-df = df[df['result'] != 'forfeit']
-
-# replacing the values in result with 1 or 0 in case of win or loss
-# Note: the win in result indicates that teamA won and vice versa
-df["result"] = df["result"].replace({"win": 1, "loss": 0})
-
-# removing hyphens from the date columns
-df['startDate'] = df['startDate'].str.replace('-', '')
-df['endDate'] = df['endDate'].str.replace('-', '')
-
-# sorting the data by dates
-df = df.sort_values(by='startDate')
-
-# filling empty values of priority with 500 note priority ranges from 1 to 1000
-# 1 means that the league is of highest priority
-df["priority"] = df["priority"].replace(" ", 500)
-
-# checking for null values
-null_count_per_column = df.isnull().sum()
-print(null_count_per_column)
-
-# Making sure every column contains consistent data types
-df['startDate'] = df['startDate'].astype(int)
-df['endDate'] = df['endDate'].astype(int)
-df['priority'] = df['priority'].astype(int)
-df['result'] = df['result'].astype(int)
-
-df['stageName'] = df['stageName'].str.replace('_', ' ')
-df['stageName'] = df['stageName'].str.replace('1', 'A')
-df['stageName'] = df['stageName'].str.replace('2', 'B')
-df['stageName'] = df['stageName'].astype(str)
-
-df['sectionName'] = df['sectionName'].str.replace('-', ' ')
-df['sectionName'] = df['sectionName'].str.replace('_', ' ')
-df['sectionName'] = df['sectionName'].str.replace('1', 'A')
-df['sectionName'] = df['sectionName'].str.replace('2', 'B')
-df['sectionName'] = df['sectionName'].str.replace('5', 'E')
-df['sectionName'] = df['sectionName'].astype(str)
-
-print("\n")
-print(df.dtypes)
-
-# exporting the dataframe to a csv file to just make sure and see that everything has been done correctly
-"""
-df.to_csv("pd_df.csv", index=False)
-"""
-
-# Splitting the dataframe into training and testing dataframe
-train_df = df.sample(frac=0.9, random_state=0)
-test_df = df.drop(train_df.index)
-
-print("\n")
-print("training df:\n")
-print(train_df)
-
-print("\n")
-print("testing df:\n")
-print(test_df)
+chunk_size = 1000
+chunks = pd.read_csv('train.csv', chunksize=chunk_size)
 
 ratings = [[-sys.maxsize-1, -sys.maxsize-1]]
 
@@ -85,7 +24,7 @@ ACTIONS = [
     85,
     95,
 ]
-print(ACTIONS)
+
 # Define the neural network model
 model = tf.keras.Sequential([
     tf.keras.layers.Input(shape=(4,)),  # State (x, y)
@@ -99,64 +38,81 @@ model.compile(optimizer='adam', loss='mse')
 
 # Hyperparameters
 DISCOUNT_FACTOR = 0.9
-EPISODES = 30
 EPSILON = 0.4
 
+# Parameters to track model training
 count = 0
 score = 0
 
-def get_rating_and_index(teamId, ratings):
-    for index, teams in enumerate(ratings):
-        if teams[0] == teamId:
-            return teams[1], index
+
+def get_rating_and_index(team_id, ratings_arr):
+    for index_teams, teams in enumerate(ratings_arr):
+        if teams[0] == team_id:
+            return teams[1], index_teams
     else:
         # Team not found, add a new entry
-        new_team = [teamId, 400]
+        new_team = [team_id, 400]
         ratings.append(new_team)
         return 400, len(ratings) - 1
 
+
 # Deep Q-learning algorithm
-for index, row in train_df.iterrows():
-    if count == 700:
-        EPSILON = 0.1
-    count += 1
+for chunk_train_df in chunks:
+    for index, row in chunk_train_df.iterrows():
+        # Reducing the value of EPSILON to avoid exploring in later stages
+        if count == 700:
+            EPSILON = 0.1
+        count += 1
 
-    print(ratings)
-    print(" ")
-    print(count)
-    print(" ")
-    print(score)
+        # Check if there is a next row if there is then retrieve the next state values
+        # if there isn't just break out of the loop
+        if count % chunk_size == 0:
+            print("No next row")
+            break
 
-    rating_diff = None
-    rating_a, index_a = get_rating_and_index(row['teamA'], ratings)
-    rating_b, index_b = get_rating_and_index(row['teamB'], ratings)
+        # Print the parameters for tracking the training of model
+        print(ratings)
+        print(" ")
+        print(count)
+        print(" ")
+        print(score)
 
-    if rating_a > rating_b:
-        rating_diff = rating_a - rating_b
-    else:
-        rating_diff = rating_b - rating_a
+        # Extract the variables of our current row that define our current state which we will pass
+        # to the neural network to predict what action to take.
+        rating_diff = None
+        rating_a, index_a = get_rating_and_index(row['teamA'], ratings)
+        rating_b, index_b = get_rating_and_index(row['teamB'], ratings)
 
-    team_a_wins = row["result"]
-    state = [rating_a, rating_b, rating_diff, team_a_wins]
+        if rating_a > rating_b:
+            rating_diff = rating_a - rating_b
+        else:
+            rating_diff = rating_b - rating_a
 
-    # Epsilon-greedy exploration
-    if np.random.rand() < EPSILON:
-        action = np.random.choice(len(ACTIONS))
-    else:
-        q_values = model.predict(np.array([state]))
-        action = np.argmax(q_values)
-    
-    # Update the ratings in ranking dictionary
-    if row["result"] == 1:
-        ratings[index_a][1] += ACTIONS[action]
-        ratings[index_b][1] -= ACTIONS[action]
-    else:
-        ratings[index_a][1] -= ACTIONS[action]
-        ratings[index_b][1] += ACTIONS[action]
+        team_a_wins = row["result"]
+        state = [rating_a, rating_b, rating_diff, team_a_wins]
 
-    try:
-        # Look one row ahead
-        next_index, next_row = next(df.iterrows())
+        # Epsilon-greedy exploration if EPSILON is small it will do less and less exploration
+        if np.random.rand() < EPSILON:
+            action = np.random.choice(len(ACTIONS))
+        else:
+            q_values = model.predict(np.array([state]))
+            action = np.argmax(q_values)
+
+        # Update the ratings of teamA and teamB in ratings array
+        if row["result"] == 1:
+            ratings[index_a][1] += ACTIONS[action]
+            ratings[index_b][1] -= ACTIONS[action]
+        else:
+            ratings[index_a][1] -= ACTIONS[action]
+            ratings[index_b][1] += ACTIONS[action]
+
+        # Looking one step into the future i.e. the next step or the next row or the next sample and
+        # extracting all the variables that define that next state we would be needing this to calculate
+        # q values for next state which we will further use to update the q value for that particular
+        # action we have taken.
+        next_index = count
+        next_row = chunk_train_df.loc[next_index]
+
         next_rating_a = None
         next_rating_b = None
         next_rating_diff = None
@@ -180,33 +136,28 @@ for index, row in train_df.iterrows():
             next_rating_diff = next_rating_b - next_rating_a
         next_team_a_wins = next_row["result"]
         next_state = [next_rating_a, next_rating_b, next_rating_diff, next_team_a_wins]
-    except StopIteration:
-        print("No next row (End of DataFrame)")
-        break
 
-    # Calculate the reward (negative for wrong prediction, positive for right prediction)
-    reward = 0
-    if rating_a > rating_b:
-        if team_a_wins == 1:
-            reward = 1
-        else:
-            reward = -1
-    elif rating_a < rating_b:
-        if team_a_wins == 0:
-            reward = 1
-        else:
-            reward = -1
-    else:
+        # Calculate the reward (negative for wrong prediction, positive for right prediction)
         reward = 0
+        if rating_a > rating_b:
+            if team_a_wins == 1:
+                reward = 1
+            else:
+                reward = -1
+        elif rating_a < rating_b:
+            if team_a_wins == 0:
+                reward = 1
+            else:
+                reward = -1
+        else:
+            reward = 0
 
-    score += reward
-    # Q-value update using the neural network
-    q_values = model.predict(np.array([state]))
-    q_values_next = model.predict(np.array([next_state]))
-    q_values[0][action] = reward + DISCOUNT_FACTOR * np.max(q_values_next)
-    print(DISCOUNT_FACTOR * np.max(q_values_next))
-    model.fit(np.array([state]), q_values, verbose=0)
-
+        score += reward
+        # Q-value update using the neural network
+        q_values = model.predict(np.array([state]))
+        q_values_next = model.predict(np.array([next_state]))
+        q_values[0][action] = reward + DISCOUNT_FACTOR * np.max(q_values_next)
+        model.fit(np.array([state]), q_values, verbose=0)
 
 tf.saved_model.save(model, "model1")
 
