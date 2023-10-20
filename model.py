@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import sys
+import csv
 
 train_df = pd.read_csv('train.csv')
 ratings = [[-sys.maxsize-1, -sys.maxsize-1]]
@@ -158,6 +159,11 @@ for row in train_df.itertuples():
 
 # Exporting the model
 tf.saved_model.save(model, "model1")
+
+# Exporting the ratings of all teams in the end
+with open("ratings.csv", 'w', newline='') as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerows(ratings)
 
 """
 # Test the trained policy
