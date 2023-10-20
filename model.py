@@ -3,14 +3,11 @@ import numpy as np
 import tensorflow as tf
 import sys
 
-chunk_size = 1000
-chunks = pd.read_csv('train.csv', chunksize=chunk_size)
-
+train_df = pd.read_csv('train.csv')
 ratings = [[-sys.maxsize-1, -sys.maxsize-1]]
 
 # Define the ratings environment
 # rating_a, rating_b, rating_diff, team_a_wins
-
 # Define possible actions (different values of k)
 ACTIONS = [
     5,
@@ -56,20 +53,18 @@ def get_rating_and_index(team_id, ratings_arr):
         return 400, len(ratings) - 1
 
 
+# Initialize a variable to store the previous row
+prev_row = None
+
 # Deep Q-learning algorithm
-for chunk_train_df in chunks:
-    for index, row in chunk_train_df.iterrows():
-        # Reducing the value of EPSILON to avoid exploring in later stages
-        if count == 700:
-            EPSILON = 0.1
-        count += 1
+for row in train_df.itertuples():
+    # Reducing the value of EPSILON to avoid exploring in later stages
+    if count == 700:
+        EPSILON = 0.1
+    count += 1
 
-        # Check if there is a next row if there is then retrieve the next state values
-        # if there isn't just break out of the loop
-        if count % chunk_size == 0:
-            print("No next row")
-            break
-
+    # prev_row will actually act as our current state
+    if prev_row is not None:
         # Print the parameters for tracking the training of model
         print(ratings)
         print(" ")
@@ -80,15 +75,15 @@ for chunk_train_df in chunks:
         # Extract the variables of our current row that define our current state which we will pass
         # to the neural network to predict what action to take.
         rating_diff = None
-        rating_a, index_a = get_rating_and_index(row['teamA'], ratings)
-        rating_b, index_b = get_rating_and_index(row['teamB'], ratings)
+        rating_a, index_a = get_rating_and_index(prev_row.teamA, ratings)
+        rating_b, index_b = get_rating_and_index(prev_row.teamB, ratings)
 
         if rating_a > rating_b:
             rating_diff = rating_a - rating_b
         else:
             rating_diff = rating_b - rating_a
 
-        team_a_wins = row["result"]
+        team_a_wins = prev_row.result
         state = [rating_a, rating_b, rating_diff, team_a_wins]
 
         # Epsilon-greedy exploration if EPSILON is small it will do less and less exploration
@@ -99,7 +94,7 @@ for chunk_train_df in chunks:
             action = np.argmax(q_values)
 
         # Update the ratings of teamA and teamB in ratings array
-        if row["result"] == 1:
+        if prev_row.result == 1:
             ratings[index_a][1] += ACTIONS[action]
             ratings[index_b][1] -= ACTIONS[action]
         else:
@@ -110,21 +105,22 @@ for chunk_train_df in chunks:
         # extracting all the variables that define that next state we would be needing this to calculate
         # q values for next state which we will further use to update the q value for that particular
         # action we have taken.
-        next_index = count
-        next_row = chunk_train_df.loc[next_index]
+        # Check if there is a next row if there is then retrieve the next state values
+        # if there isn't just break out of the loop
 
+        # This is the next state in reinforcement learning which is actually the current row in our loop
         next_rating_a = None
         next_rating_b = None
         next_rating_diff = None
         for sublist in ratings:
-            if sublist[0] == next_row['teamA']:
+            if sublist[0] == row.teamA:
                 next_rating_a = sublist[1]
                 break
             elif ratings[-1] == sublist:
                 next_rating_a = 400
 
         for sublist in ratings:
-            if sublist[0] == next_row['teamB']:
+            if sublist[0] == row.teamB:
                 next_rating_b = sublist[1]
                 break
             elif ratings[-1] == sublist:
@@ -134,7 +130,7 @@ for chunk_train_df in chunks:
             next_rating_diff = next_rating_a - next_rating_b
         else:
             next_rating_diff = next_rating_b - next_rating_a
-        next_team_a_wins = next_row["result"]
+        next_team_a_wins = row.result
         next_state = [next_rating_a, next_rating_b, next_rating_diff, next_team_a_wins]
 
         # Calculate the reward (negative for wrong prediction, positive for right prediction)
@@ -158,7 +154,9 @@ for chunk_train_df in chunks:
         q_values_next = model.predict(np.array([next_state]))
         q_values[0][action] = reward + DISCOUNT_FACTOR * np.max(q_values_next)
         model.fit(np.array([state]), q_values, verbose=0)
+    prev_row = row
 
+# Exporting the model
 tf.saved_model.save(model, "model1")
 
 """
