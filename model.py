@@ -36,7 +36,7 @@ model.compile(optimizer='adam', loss='mse')
 
 # Hyperparameters
 DISCOUNT_FACTOR = 0.9
-EPSILON = 0.4
+EPSILON = 0.9
 
 # Parameters to track model training
 count = 0
@@ -59,8 +59,11 @@ prev_row = None
 
 # Deep Q-learning algorithm
 for row in train_df.itertuples():
+    if count == 10000:
+        break
+
     # Reducing the value of EPSILON to avoid exploring in later stages
-    if count == 700:
+    if count == 5000:
         EPSILON = 0.1
     count += 1
 
@@ -159,19 +162,20 @@ for row in train_df.itertuples():
     prev_row = row
 
 # Save the model
-model.save("keras_load_model")
+model.save("keras_load_model_5000")
 # Load the model
 # loaded_model = tf.keras.models.load_model("path_to_saved_model")
 
 # Save the model in HDF5 format
 # Saving the weights of the model
-model.save("model.h5")
+model.save("model_5000.h5")
 # Load the model from the HDF5 file
 # loaded_model = tf.keras.models.load_model("model.h5")
 
 # Exporting the ratings of all teams in the end
+"""
 with open("ratings.csv", 'w', newline='') as csv_file:
     writer = csv.writer(csv_file)
     writer.writerows(ratings)
-
+"""
 
