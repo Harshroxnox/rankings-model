@@ -69,9 +69,9 @@ for row in train_df.itertuples():
         # Print the parameters for tracking the training of model
         print(ratings)
         print(" ")
-        print(count)
+        print(f'count: {count}')
         print(" ")
-        print(score)
+        print(f'score: {score}')
 
         # Extract the variables of our current row that define our current state which we will pass
         # to the neural network to predict what action to take.
@@ -102,6 +102,7 @@ for row in train_df.itertuples():
             ratings[index_a][1] -= ACTIONS[action]
             ratings[index_b][1] += ACTIONS[action]
 
+        print(f'actions:{ACTIONS[action]}')
         # Looking one step into the future i.e. the next step or the next row or the next sample and
         # extracting all the variables that define that next state we would be needing this to calculate
         # q values for next state which we will further use to update the q value for that particular
@@ -173,20 +174,4 @@ with open("ratings.csv", 'w', newline='') as csv_file:
     writer = csv.writer(csv_file)
     writer.writerows(ratings)
 
-"""
-# Test the trained policy
-state = START_STATE
-path = [state]
 
-while state != GOAL_STATE:
-    q_values = model.predict(np.array([state]))
-    action = np.argmax(q_values)
-    next_state = (state[0] + ACTIONS[action][0], state[1] + ACTIONS[action][1])
-    path.append(next_state)
-    state = next_state
-
-# Print the optimal path
-print("Optimal Path:")
-for step in path:
-    print(step)
-"""
