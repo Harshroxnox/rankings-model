@@ -88,7 +88,11 @@ for row in train_df.itertuples():
             rating_diff = rating_b - rating_a
 
         team_a_wins = prev_row.result
+        rating_a = rating_a/800
+        rating_b = rating_b/800
+        rating_diff = rating_diff/800
         state = [rating_a, rating_b, rating_diff, team_a_wins]
+        print(f'state: {state}')
 
         # Epsilon-greedy exploration if EPSILON is small it will do less and less exploration
         if np.random.rand() < EPSILON:
@@ -105,7 +109,6 @@ for row in train_df.itertuples():
             ratings[index_a][1] -= ACTIONS[action]
             ratings[index_b][1] += ACTIONS[action]
 
-        print(f'actions:{ACTIONS[action]}')
         # Looking one step into the future i.e. the next step or the next row or the next sample and
         # extracting all the variables that define that next state we would be needing this to calculate
         # q values for next state which we will further use to update the q value for that particular
@@ -136,6 +139,9 @@ for row in train_df.itertuples():
         else:
             next_rating_diff = next_rating_b - next_rating_a
         next_team_a_wins = row.result
+        next_rating_a = next_rating_a/800
+        next_rating_b = next_rating_b/800
+        next_rating_diff = next_rating_diff/800
         next_state = [next_rating_a, next_rating_b, next_rating_diff, next_team_a_wins]
 
         # Calculate the reward (negative for wrong prediction, positive for right prediction)
@@ -165,12 +171,6 @@ for row in train_df.itertuples():
 model.save("keras_load_model_10000")
 # Load the model
 # loaded_model = tf.keras.models.load_model("path_to_saved_model")
-
-# Save the model in HDF5 format
-# Saving the weights of the model
-model.save("model_10000.h5")
-# Load the model from the HDF5 file
-# loaded_model = tf.keras.models.load_model("model.h5")
 
 # Exporting the ratings of all teams in the end
 """
