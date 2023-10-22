@@ -162,13 +162,13 @@ for row in train_df.itertuples():
     prev_row = row
 
 # Save the model
-model.save("keras_load_model_5000")
+model.save("keras_load_model_10000")
 # Load the model
 # loaded_model = tf.keras.models.load_model("path_to_saved_model")
 
 # Save the model in HDF5 format
 # Saving the weights of the model
-model.save("model_5000.h5")
+model.save("model_10000.h5")
 # Load the model from the HDF5 file
 # loaded_model = tf.keras.models.load_model("model.h5")
 
