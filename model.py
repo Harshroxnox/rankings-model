@@ -157,8 +157,16 @@ for row in train_df.itertuples():
         model.fit(np.array([state]), q_values, verbose=0)
     prev_row = row
 
-# Exporting the model
-tf.saved_model.save(model, "model1")
+# Save the model
+model.save("keras_load_model")
+# Load the model
+# loaded_model = tf.keras.models.load_model("path_to_saved_model")
+
+# Save the model in HDF5 format
+# Saving the weights of the model
+model.save("model.h5")
+# Load the model from the HDF5 file
+# loaded_model = tf.keras.models.load_model("model.h5")
 
 # Exporting the ratings of all teams in the end
 with open("ratings.csv", 'w', newline='') as csv_file:
