@@ -102,12 +102,13 @@ for row in train_df.itertuples():
             action = np.argmax(q_values)
 
         # Update the ratings of teamA and teamB in ratings array
+        fluctuation = ((rating_diff * 800) / ACTIONS[action]) + 20
         if prev_row.result == 1:
-            ratings[index_a][1] += (rating_diff*800)/ACTIONS[action]
-            ratings[index_b][1] -= (rating_diff*800)/ACTIONS[action]
+            ratings[index_a][1] += fluctuation
+            ratings[index_b][1] -= fluctuation
         else:
-            ratings[index_a][1] -= (rating_diff*800)/ACTIONS[action]
-            ratings[index_b][1] += (rating_diff*800)/ACTIONS[action]
+            ratings[index_a][1] -= fluctuation
+            ratings[index_b][1] += fluctuation
         print(f'action: {ACTIONS[action]}')
         # Looking one step into the future i.e. the next step or the next row or the next sample and
         # extracting all the variables that define that next state we would be needing this to calculate
