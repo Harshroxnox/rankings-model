@@ -34,10 +34,10 @@ model = tf.keras.Sequential([
 # Compile the model
 model.compile(optimizer='adam', loss='mse')
 """
-model = tf.keras.models.load_model("keras_load_model_3")
+model = tf.keras.models.load_model("keras_load_model_4")
 # Hyperparameters
 DISCOUNT_FACTOR = 0.9
-EPSILON = 0.9
+EPSILON = 0.1
 
 # Parameters to track model training
 count = 0
@@ -60,13 +60,14 @@ prev_row = None
 
 # Deep Q-learning algorithm
 for row in train_df.itertuples():
-    if count == 10000:
+    if count == 5000:
         break
     # Reducing the value of EPSILON to avoid exploring in later stages
+    """
     if count == 1500:
         EPSILON = 0.1
     count += 1
-
+    """
     # prev_row will actually act as our current state
     if prev_row is not None:
         # Print the parameters for tracking the training of model
@@ -168,7 +169,7 @@ for row in train_df.itertuples():
     prev_row = row
 
 # Save the model
-model.save("keras_load_model_4")
+model.save("keras_load_model_5")
 # Load the model
 # loaded_model = tf.keras.models.load_model("path_to_saved_model")
 
