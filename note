@@ -1,2 +1,8 @@
+
 Only the games data is different for different years 
 the esports-data is the same for every years that is it has all the data for all years 
+
+Train the model to make it more efficient and replace the exported model files into the model-api
+and into the ml model api server
+
+Generate the ratings table using the best version of the model and rerun the mongodb conversion script and update the backend folder and the backend server 
