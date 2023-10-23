@@ -66,8 +66,8 @@ for row in train_df.itertuples():
     """
     if count == 1500:
         EPSILON = 0.1
-    count += 1
     """
+    count += 1
     # prev_row will actually act as our current state
     if prev_row is not None:
         # Print the parameters for tracking the training of model
