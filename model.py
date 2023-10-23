@@ -34,7 +34,7 @@ model = tf.keras.Sequential([
 # Compile the model
 model.compile(optimizer='adam', loss='mse')
 """
-model = tf.keras.models.load_model("keras_load_model_2")
+model = tf.keras.models.load_model("keras_load_model_3")
 # Hyperparameters
 DISCOUNT_FACTOR = 0.9
 EPSILON = 0.9
@@ -63,7 +63,7 @@ for row in train_df.itertuples():
     if count == 10000:
         break
     # Reducing the value of EPSILON to avoid exploring in later stages
-    if count == 2500:
+    if count == 1500:
         EPSILON = 0.1
     count += 1
 
@@ -168,7 +168,7 @@ for row in train_df.itertuples():
     prev_row = row
 
 # Save the model
-model.save("keras_load_model_3")
+model.save("keras_load_model_4")
 # Load the model
 # loaded_model = tf.keras.models.load_model("path_to_saved_model")
 
