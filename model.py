@@ -11,18 +11,18 @@ ratings = [[-sys.maxsize-1, -sys.maxsize-1]]
 # rating_a, rating_b, rating_diff, team_a_wins
 # Define possible actions (different values of k)
 ACTIONS = [
+    2,
+    3,
+    4,
     5,
-    15,
-    25,
-    35,
-    45,
-    55,
-    65,
-    75,
-    85,
-    95,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
 ]
-"""
+
 # Define the neural network model
 model = tf.keras.Sequential([
     tf.keras.layers.Input(shape=(4,)),  # State (x, y)
@@ -33,11 +33,10 @@ model = tf.keras.Sequential([
 
 # Compile the model
 model.compile(optimizer='adam', loss='mse')
-"""
-model = tf.keras.models.load_model("keras_load_model_4")
+
 # Hyperparameters
 DISCOUNT_FACTOR = 0.9
-EPSILON = 0.1
+EPSILON = 0.9
 
 # Parameters to track model training
 count = 0
@@ -63,10 +62,10 @@ for row in train_df.itertuples():
     if count == 5000:
         break
     # Reducing the value of EPSILON to avoid exploring in later stages
-    """
-    if count == 1500:
+
+    if count == 500:
         EPSILON = 0.1
-    """
+
     count += 1
     # prev_row will actually act as our current state
     if prev_row is not None:
@@ -104,11 +103,11 @@ for row in train_df.itertuples():
 
         # Update the ratings of teamA and teamB in ratings array
         if prev_row.result == 1:
-            ratings[index_a][1] += ACTIONS[action]
-            ratings[index_b][1] -= ACTIONS[action]
+            ratings[index_a][1] += (rating_diff*800)/ACTIONS[action]
+            ratings[index_b][1] -= (rating_diff*800)/ACTIONS[action]
         else:
-            ratings[index_a][1] -= ACTIONS[action]
-            ratings[index_b][1] += ACTIONS[action]
+            ratings[index_a][1] -= (rating_diff*800)/ACTIONS[action]
+            ratings[index_b][1] += (rating_diff*800)/ACTIONS[action]
         print(f'action: {ACTIONS[action]}')
         # Looking one step into the future i.e. the next step or the next row or the next sample and
         # extracting all the variables that define that next state we would be needing this to calculate
@@ -169,7 +168,7 @@ for row in train_df.itertuples():
     prev_row = row
 
 # Save the model
-model.save("keras_load_model_5")
+model.save("keras_load_model")
 # Load the model
 # loaded_model = tf.keras.models.load_model("path_to_saved_model")
 
