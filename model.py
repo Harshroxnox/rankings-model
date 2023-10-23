@@ -59,8 +59,6 @@ prev_row = None
 
 # Deep Q-learning algorithm
 for row in train_df.itertuples():
-    if count == 10000:
-        break
 
     # Reducing the value of EPSILON to avoid exploring in later stages
     if count == 5000:
@@ -108,7 +106,7 @@ for row in train_df.itertuples():
         else:
             ratings[index_a][1] -= ACTIONS[action]
             ratings[index_b][1] += ACTIONS[action]
-
+        print(f'action: {ACTIONS[action]}')
         # Looking one step into the future i.e. the next step or the next row or the next sample and
         # extracting all the variables that define that next state we would be needing this to calculate
         # q values for next state which we will further use to update the q value for that particular
@@ -168,7 +166,7 @@ for row in train_df.itertuples():
     prev_row = row
 
 # Save the model
-model.save("keras_load_model_10000")
+model.save("keras_load_model")
 # Load the model
 # loaded_model = tf.keras.models.load_model("path_to_saved_model")
 
