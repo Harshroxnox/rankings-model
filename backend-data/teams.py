@@ -22,7 +22,7 @@ data.append(headers)
 for team in data_ratings:
     data_row = []
     team_id = int(team[0])
-    data_row.append(int(team[0]))
+    data_row.append(str(team[0]))
     data_row.append(int(team[1]))
     for dictionary in data_teams:
         if int(dictionary["team_id"]) == team_id:
